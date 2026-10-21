@@ -1,0 +1,13 @@
+{
+  "background_color": "#ffffff",
+  "dir": "ltr",
+  "display": "standalone",
+  "name": "Miro MarkEt",
+  "orientation": "any",
+  "scope": "/",
+  "short_name": "Miro MarkEt",
+  "start_url": "/",
+  "theme_color": "#ffffff",
+  "id": "Market",
+  "description": "Market"
+}
