@@ -59,13 +59,13 @@
 </head>
 <body class="bg-gray-100 text-gray-900 pb-20 select-none">
 
-    <!-- Custom Toast Notification -->
-    <div id="customToast" class="fixed top-5 left-1/2 -translate-x-1/2 z-50 transition-all duration-300 opacity-0 pointer-events-none transform -translate-y-4">
-        <div class="bg-gray-900 text-white px-5 py-3 rounded-2xl shadow-2xl flex items-center gap-3 border border-gray-700 min-w-[280px]">
-            <i id="toastIcon" class="fa-solid fa-circle-info text-amazon-yellow text-lg"></i>
-            <span id="toastMessage" class="text-xs font-bold font-cairo"></span>
-        </div>
+    <!-- Custom Toast Notification (معدل ليكون في الطبقة العليا دائماً) -->
+<div id="customToast" class="fixed top-5 left-1/2 -translate-x-1/2 z-[9999] transition-all duration-300 opacity-0 pointer-events-none transform -translate-y-4">
+    <div class="bg-gray-900 text-white px-5 py-3 rounded-2xl shadow-2xl flex items-center gap-3 border border-gray-700 min-w-[280px]">
+        <i id="toastIcon" class="fa-solid fa-circle-info text-amazon-yellow text-lg"></i>
+        <span id="toastMessage" class="text-xs font-bold font-cairo"></span>
     </div>
+</div>
 
     <!-- Custom Confirm Modal (بديل الـ confirm الافتراضي للمتصفح) -->
     <div id="customConfirmModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
