@@ -42,9 +42,45 @@
         }
         .hide-scrollbar::-webkit-scrollbar { display: none; }
         .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
     </style>
 </head>
 <body class="bg-gray-100 text-gray-900 pb-20 select-none">
+
+    <!-- شاشة التحميل (Splash Screen) -->
+    <div id="loading-screen" style="
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: #ffffff;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        z-index: 9999;
+        transition: opacity 0.5s ease, visibility 0.5s ease;
+    ">
+        <!-- صورة اللوجو باسم home.png -->
+        <img src="home.png" alt="Miro MarkEt" style="width: 120px; height: 120px; border-radius: 20px; margin-bottom: 20px; object-fit: cover;" onerror="this.src='https://images.unsplash.com/photo-1540420773420-3366772f4999?w=400'">
+        
+        <!-- مؤشر التحميل الدائري -->
+        <div style="
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #008542;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        "></div>
+        
+        <!-- نص توضيحي -->
+        <p style="margin-top: 15px; font-family: 'Cairo', sans-serif; color: #333; font-weight: bold; font-size: 14px;">جاري تحميل أحدث الأسعار والمنتجات...</p>
+    </div>
 
     <!-- App Container -->
     <div id="app" class="max-w-md mx-auto min-h-screen bg-gray-50 flex flex-col relative shadow-xl">
@@ -401,6 +437,18 @@
             fetchDataFromSheets();
         });
 
+        // دالة إخفاء شاشة التحميل بانسيابية
+        function hideLoadingScreen() {
+            const loader = document.getElementById('loading-screen');
+            if (loader) {
+                loader.style.opacity = '0';
+                loader.style.visibility = 'hidden';
+                setTimeout(() => {
+                    loader.style.display = 'none';
+                }, 500);
+            }
+        }
+
         function changeLanguage(newLang) {
             state.lang = newLang;
             localStorage.setItem('miro_lang', newLang);
@@ -457,7 +505,10 @@
         }
 
         async function fetchDataFromSheets() {
-            if (!state.settings.scriptUrl) return;
+            if (!state.settings.scriptUrl) {
+                hideLoadingScreen();
+                return;
+            }
             const baseUrl = state.settings.scriptUrl.trim();
             const urlSep = baseUrl.includes('?') ? '&' : '?';
 
@@ -533,39 +584,42 @@
                 }
             } catch (err) {
                 console.log("Fetch error:", err);
+            } finally {
+                // إخفاء شاشة التحميل فور اكتمال الجلب
+                hideLoadingScreen();
             }
         }
 
-async function requestOrderCancellation(orderId) {
-    if (!confirm("هل تريد حقاً إرسال طلب إلغاء لهذا الطلب؟")) return;
+        async function requestOrderCancellation(orderId) {
+            if (!confirm("هل تريد حقاً إرسال طلب إلغاء لهذا الطلب؟")) return;
 
-    if (!state.settings.scriptUrl) {
-        alert("يرجى التأكد من ضبط رابط Google Apps Script أولاً!");
-        return;
-    }
+            if (!state.settings.scriptUrl) {
+                alert("يرجى التأكد من ضبط رابط Google Apps Script أولاً!");
+                return;
+            }
 
-    try {
-        const response = await fetch(state.settings.scriptUrl, {
-            method: 'POST',
-            body: JSON.stringify({
-                action: 'cancel',
-                order_id: orderId
-            })
-        });
-        const resData = await response.json();
+            try {
+                const response = await fetch(state.settings.scriptUrl, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        action: 'cancel',
+                        order_id: orderId
+                    })
+                });
+                const resData = await response.json();
 
-        if (resData.status === "already_approved") {
-            alert("عذراً، لا يمكن إلغاء الطلب لأنه تم قبوله أو تنفيذه بالفعل من قبل الإدارة.");
-        } else {
-            alert("تم إرسال طلب الإلغاء إلى الإدارة بنجاح.");
+                if (resData.status === "already_approved") {
+                    alert("عذراً، لا يمكن إلغاء الطلب لأنه تم قبوله أو تنفيذه بالفعل من قبل الإدارة.");
+                } else {
+                    alert("تم إرسال طلب الإلغاء إلى الإدارة بنجاح.");
+                }
+
+                setTimeout(fetchDataFromSheets, 500);
+            } catch (e) {
+                console.log("Error sending cancel request:", e);
+                alert("تم إرسال طلب الإلغاء.");
+            }
         }
-
-        setTimeout(fetchDataFromSheets, 500);
-    } catch (e) {
-        console.log("Error sending cancel request:", e);
-        alert("تم إرسال طلب الإلغاء.");
-    }
-}
 
         function updateOrdersHistoryUI() {
             const container = document.getElementById('ordersHistoryContainer');
@@ -987,7 +1041,7 @@ async function requestOrderCancellation(orderId) {
 
         function openScriptModal() {
             const modal = document.getElementById('scriptModal');
-            if(modal) modal.classList.app ? modal.classList.remove('hidden') : modal.classList.remove('hidden');
+            if(modal) modal.classList.remove('hidden');
         }
 
         function closeScriptModal() {
