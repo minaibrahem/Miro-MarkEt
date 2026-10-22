@@ -4,6 +4,12 @@
     <link rel="manifest" href="./manifest.json">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <!-- إخفاء شريط العنوان والمتصفح عند فتح التطبيق كـ PWA -->
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Miro MarkEt">
+    
     <title>Miro MarkEt | ميرو ماركت</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -36,13 +42,13 @@
     </script>
     <style>
         html, body {
-    background-color: #ffffff !important; /* يمنع ظهور الخلفية السوداء */
-    margin: 0;
-    padding: 0;
-    font-family: 'Cairo', sans-serif;
-    -webkit-tap-highlight-color: transparent;
-    user-select: none;
-}
+            background-color: #ffffff !important;
+            margin: 0;
+            padding: 0;
+            font-family: 'Cairo', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+        }
         .hide-scrollbar::-webkit-scrollbar { display: none; }
         .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         @keyframes spin {
@@ -52,6 +58,29 @@
     </style>
 </head>
 <body class="bg-gray-100 text-gray-900 pb-20 select-none">
+
+    <!-- Custom Toast Notification -->
+    <div id="customToast" class="fixed top-5 left-1/2 -translate-x-1/2 z-50 transition-all duration-300 opacity-0 pointer-events-none transform -translate-y-4">
+        <div class="bg-gray-900 text-white px-5 py-3 rounded-2xl shadow-2xl flex items-center gap-3 border border-gray-700 min-w-[280px]">
+            <i id="toastIcon" class="fa-solid fa-circle-info text-amazon-yellow text-lg"></i>
+            <span id="toastMessage" class="text-xs font-bold font-cairo"></span>
+        </div>
+    </div>
+
+    <!-- Custom Confirm Modal (بديل الـ confirm الافتراضي للمتصفح) -->
+    <div id="customConfirmModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-2xl w-full max-w-sm p-5 space-y-4 shadow-2xl text-center">
+            <div class="w-12 h-12 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center mx-auto text-xl">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+            </div>
+            <h3 id="confirmTitle" class="font-bold text-sm text-gray-800">تأكيد الإجراء</h3>
+            <p id="confirmMessage" class="text-xs text-gray-600 leading-relaxed"></p>
+            <div class="flex gap-2 pt-2">
+                <button id="btnConfirmYes" class="w-1/2 bg-red-600 hover:bg-red-700 text-white font-bold py-2 rounded-xl text-xs shadow transition">نعم، إرسال</button>
+                <button onclick="closeConfirmModal()" class="w-1/2 bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 rounded-xl text-xs transition">إلغاء</button>
+            </div>
+        </div>
+    </div>
 
     <!-- شاشة التحميل (Splash Screen) -->
     <div id="loading-screen" style="
@@ -341,6 +370,52 @@
 
     <!-- JAVASCRIPT -->
     <script>
+        // دالة عرض التنبيهات المخصصة بدون ظهور اسم الدومين
+        function showToast(message, icon = 'fa-circle-info') {
+            const toast = document.getElementById('customToast');
+            const toastMsg = document.getElementById('toastMessage');
+            const toastIcon = document.getElementById('toastIcon');
+
+            if (!toast || !toastMsg) return;
+
+            toastMsg.textContent = message;
+            toastIcon.className = `fa-solid ${icon} text-amazon-yellow text-lg`;
+
+            toast.classList.remove('opacity-0', 'pointer-events-none', '-translate-y-4');
+            toast.classList.add('opacity-100', 'translate-y-0');
+
+            setTimeout(() => {
+                toast.classList.remove('opacity-100', 'translate-y-0');
+                toast.classList.add('opacity-0', 'pointer-events-none', '-translate-y-4');
+            }, 3500);
+        }
+
+        // استبدال أوامر alert بـ Toast مخصص
+        window.alert = function(message) {
+            showToast(message, 'fa-bell');
+        };
+
+        // دالة إظهار نافذة التأكيد المخصصة بدلاً من confirm المزعجة
+        let pendingConfirmCallback = null;
+        function openCustomConfirm(title, message, onConfirm) {
+            const modal = document.getElementById('customConfirmModal');
+            document.getElementById('confirmTitle').textContent = title;
+            document.getElementById('confirmMessage').textContent = message;
+            pendingConfirmCallback = onConfirm;
+            if (modal) modal.classList.remove('hidden');
+        }
+
+        function closeConfirmModal() {
+            const modal = document.getElementById('customConfirmModal');
+            if (modal) modal.classList.add('hidden');
+            pendingConfirmCallback = null;
+        }
+
+        document.getElementById('btnConfirmYes').addEventListener('click', () => {
+            if (pendingConfirmCallback) pendingConfirmCallback();
+            closeConfirmModal();
+        });
+
         const i18n = {
             ar: {
                 deliverTo: "التوصيل إلى: اختر موقعك",
@@ -608,30 +683,33 @@
             }
         }
 
-        async function requestOrderCancellation(orderId) {
+        // تم استبدال النافذة التقليدية بـ openCustomConfirm
+        function requestOrderCancellation(orderId) {
+            const confirmTitle = state.lang === 'ar' ? "إلغاء الطلب" : "Cancel Order";
             const confirmMsg = state.lang === 'ar' ? "هل تريد حقاً إرسال طلب إلغاء لهذا الطلب؟" : "Are you sure you want to request cancellation for this order?";
-            if (!confirm(confirmMsg)) return;
 
-            try {
-                const response = await fetch(state.settings.scriptUrl, {
-                    method: 'POST',
-                    body: JSON.stringify({
-                        action: 'cancel',
-                        order_id: orderId
-                    })
-                });
-                const resData = await response.json();
+            openCustomConfirm(confirmTitle, confirmMsg, async () => {
+                try {
+                    const response = await fetch(state.settings.scriptUrl, {
+                        method: 'POST',
+                        body: JSON.stringify({
+                            action: 'cancel',
+                            order_id: orderId
+                        })
+                    });
+                    const resData = await response.json();
 
-                if (resData.status === "already_approved") {
-                    alert(state.lang === 'ar' ? "عذراً، لا يمكن إلغاء الطلب لأنه تم قبوله أو تنفيذه بالفعل من قبل الإدارة." : "Sorry, order cannot be cancelled as it's already approved.");
-                } else {
-                    alert(state.lang === 'ar' ? "تم إرسال طلب الإلغاء إلى الإدارة بنجاح." : "Cancellation request sent successfully.");
+                    if (resData.status === "already_approved") {
+                        showToast(state.lang === 'ar' ? "عذراً، لا يمكن إلغاء الطلب لأنه تم قبوله بالفعل." : "Order cannot be cancelled as it's already approved.", "fa-circle-xmark");
+                    } else {
+                        showToast(state.lang === 'ar' ? "تم إرسال طلب الإلغاء بنجاح." : "Cancellation request sent successfully.", "fa-circle-check");
+                    }
+
+                    setTimeout(fetchDataFromSheets, 500);
+                } catch (e) {
+                    console.log("Error sending cancel request:", e);
                 }
-
-                setTimeout(fetchDataFromSheets, 500);
-            } catch (e) {
-                console.log("Error sending cancel request:", e);
-            }
+            });
         }
 
         function updateOrdersHistoryUI() {
@@ -865,13 +943,13 @@
 
         async function submitOrder() {
             if (!state.user) {
-                alert(state.lang === 'ar' ? "يرجى تسجيل الدخول أولاً لتأكيد الطلب!" : "Please sign in first to confirm order!");
+                showToast(state.lang === 'ar' ? "يرجى تسجيل الدخول أولاً لتأكيد الطلب!" : "Please sign in first to confirm order!", "fa-user-lock");
                 openLoginModal('signin');
                 return;
             }
 
             if (state.cart.length === 0) {
-                alert(state.lang === 'ar' ? "سلة التسوق فارغة!" : "Cart is empty!");
+                showToast(state.lang === 'ar' ? "سلة التسوق فارغة!" : "Cart is empty!", "fa-basket-shopping");
                 return;
             }
 
@@ -935,7 +1013,7 @@
                 btn.innerHTML = `<i class="fa-solid fa-check-circle text-base"></i> <span>${i18n[state.lang].confirmOrder}</span>`;
             }
 
-            alert(state.lang === 'ar' ? "تم إرسال طلبك بنجاح! شكراً لتسوقك من Miro MarkEt" : "Order sent successfully! Thank you for shopping with Miro MarkEt");
+            showToast(state.lang === 'ar' ? "تم إرسال طلبك بنجاح! شكراً لتسوقك من Miro MarkEt" : "Order sent successfully!", "fa-circle-check");
             switchTab('account');
             fetchDataFromSheets();
         }
@@ -1006,7 +1084,7 @@
             const address = document.getElementById('authAddress').value.trim();
 
             if (!phone || !password) {
-                alert(state.lang === 'ar' ? "يرجى إدخال رقم الجوال وكلمة المرور!" : "Please enter phone and password!");
+                showToast(state.lang === 'ar' ? "يرجى إدخال رقم الجوال وكلمة المرور!" : "Please enter phone and password!", "fa-circle-exclamation");
                 return;
             }
 
@@ -1014,17 +1092,17 @@
                 await fetchDataFromSheets();
                 const cust = state.customers.find(c => String(c.phone).trim() === phone);
                 if (!cust) {
-                    alert(state.lang === 'ar' ? "رقم الهاتف غير مسجل! يرجى إنشاء حساب جديد." : "Phone not registered! Please sign up.");
+                    showToast(state.lang === 'ar' ? "رقم الهاتف غير مسجل! يرجى إنشاء حساب جديد." : "Phone not registered!", "fa-user-xmark");
                     return;
                 }
                 if (String(cust.password).trim() !== password) {
-                    alert(state.lang === 'ar' ? "كلمة المرور غير صحيحة!" : "Incorrect password!");
+                    showToast(state.lang === 'ar' ? "كلمة المرور غير صحيحة!" : "Incorrect password!", "fa-lock");
                     return;
                 }
 
                 const statusStr = cust.status ? String(cust.status).trim() : 'قيد الانتظار';
                 if (statusStr !== 'مفعل' && statusStr !== 'Approved') {
-                    alert(state.lang === 'ar' ? "حسابك ما زال قيد المراجعة والتفعيل من إدارة المتجر. يرجى التواصل عبر الواتساب لتفعيل حسابك." : "Account pending approval. Please contact via WhatsApp.");
+                    showToast(state.lang === 'ar' ? "حسابك ما زال قيد المراجعة والتفعيل من الإدارة." : "Account pending approval.", "fa-clock");
                     return;
                 }
 
@@ -1033,11 +1111,11 @@
                 updateProfileUI();
                 closeLoginModal();
                 updateCartUI();
-                alert(state.lang === 'ar' ? "تم تسجيل الدخول بنجاح!" : "Signed in successfully!");
+                showToast(state.lang === 'ar' ? "تم تسجيل الدخول بنجاح!" : "Signed in successfully!", "fa-circle-check");
                 fetchDataFromSheets();
             } else {
                 if (!name || !address) {
-                    alert(state.lang === 'ar' ? "يرجى إدخال الاسم والعنوان لإتمام التسجيل!" : "Please enter name and address!");
+                    showToast(state.lang === 'ar' ? "يرجى إدخال الاسم والعنوان لإتمام التسجيل!" : "Please enter name and address!", "fa-pen");
                     return;
                 }
 
@@ -1094,13 +1172,13 @@
                         updateProfileUI();
                         closeLoginModal();
                         updateCartUI();
-                        alert(state.lang === 'ar' ? "تهانينا! تم تفعيل حسابك بنجاح من إدارة المتجر." : "Congratulations! Your account has been approved.");
+                        showToast(state.lang === 'ar' ? "تهانينا! تم تفعيل حسابك بنجاح." : "Account approved!", "fa-party-horn");
                         return;
                     }
                 }
             }
 
-            if (statusMsg) statusMsg.textContent = state.lang === 'ar' ? "الحساب ما زال قيد الانتظار. يرجى التأكد من إرسال رسالة الواتساب للإدارة." : "Account still pending. Please ensure WhatsApp message was sent.";
+            if (statusMsg) statusMsg.textContent = state.lang === 'ar' ? "الحساب ما زال قيد الانتظار. يرجى إرسال رسالة الواتساب للإدارة." : "Account still pending.";
             if (btn) btn.disabled = false;
         }
 
@@ -1109,6 +1187,7 @@
             localStorage.removeItem('miro_user');
             updateProfileUI();
             updateOrdersHistoryUI();
+            showToast(state.lang === 'ar' ? "تم تسجيل الخروج" : "Signed out", "fa-right-from-bracket");
         }
     </script>
 </body>
