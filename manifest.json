@@ -1,6 +1,7 @@
 {
   "name": "Miro MarkEt",
   "short_name": "Miro Market",
+  "description": "متجر ميرو ماركت للخضروات والفاكهة",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#ffffff",
@@ -10,13 +11,13 @@
   "lang": "ar",
   "icons": [
     {
-      "src": "https://raw.githubusercontent.com/minaibrahem/Miro-MarkEt/main/icon.jpg",
+      "src": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d7/Android_robot_%282014-2019%29.svg/192px-Android_robot_%282014-2019%29.svg.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "https://raw.githubusercontent.com/minaibrahem/Miro-MarkEt/main/icon.jpg",
+      "src": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d7/Android_robot_%282014-2019%29.svg/512px-Android_robot_%282014-2019%29.svg.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
