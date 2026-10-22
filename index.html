@@ -35,11 +35,14 @@
         }
     </script>
     <style>
-        body {
-            font-family: 'Cairo', sans-serif;
-            -webkit-tap-highlight-color: transparent;
-            user-select: none;
-        }
+        html, body {
+    background-color: #ffffff !important; /* يمنع ظهور الخلفية السوداء */
+    margin: 0;
+    padding: 0;
+    font-family: 'Cairo', sans-serif;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+}
         .hide-scrollbar::-webkit-scrollbar { display: none; }
         .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         @keyframes spin {
@@ -65,10 +68,8 @@
         z-index: 9999;
         transition: opacity 0.5s ease, visibility 0.5s ease;
     ">
-        <!-- صورة اللوجو باسم home.png -->
         <img src="home.png" alt="Miro MarkEt" style="width: 120px; height: 120px; border-radius: 20px; margin-bottom: 20px; object-fit: cover;" onerror="this.src='https://images.unsplash.com/photo-1540420773420-3366772f4999?w=400'">
         
-        <!-- مؤشر التحميل الدائري -->
         <div style="
             border: 4px solid #f3f3f3;
             border-top: 4px solid #008542;
@@ -78,7 +79,6 @@
             animation: spin 1s linear infinite;
         "></div>
         
-        <!-- نص توضيحي -->
         <p style="margin-top: 15px; font-family: 'Cairo', sans-serif; color: #333; font-weight: bold; font-size: 14px;">جاري تحميل أحدث الأسعار والمنتجات...</p>
     </div>
 
@@ -100,10 +100,6 @@
                            class="w-full text-xs text-gray-900 px-3 py-2 pr-8 rounded-lg focus:outline-none focus:ring-2 focus:ring-amazon-orange bg-white shadow-inner">
                     <i class="fa-solid fa-magnifying-glass absolute left-2.5 top-2.5 text-gray-400 text-xs"></i>
                 </div>
-
-                <button onclick="openScriptModal()" class="text-xs bg-gray-800 hover:bg-gray-700 text-amazon-yellow px-2 py-1.5 rounded border border-gray-700 transition" title="إعدادات الربط">
-                    <i class="fa-solid fa-code"></i>
-                </button>
             </div>
 
             <div class="bg-amazon-lightNavy px-4 py-1.5 text-xs text-gray-300 flex items-center justify-between border-t border-gray-700">
@@ -256,9 +252,19 @@
                         </select>
                     </div>
 
-                    <button onclick="openScriptModal()" class="w-full bg-amazon-navy text-amazon-yellow text-xs font-bold py-2.5 rounded-xl shadow transition flex items-center justify-center gap-2">
-                        <i class="fa-solid fa-code"></i> <span data-i18n="scriptSetup">تغيير رابط Google Sheets</span>
-                    </button>
+                    <!-- بطاقة التواصل ورقم التليفون -->
+                    <div class="p-3 bg-gray-50 rounded-xl border border-gray-100 space-y-2">
+                        <span class="text-xs font-bold block text-gray-800 flex items-center gap-1.5">
+                            <i class="fa-solid fa-headset text-emerald-600"></i> رقم التواصل والدعم الفني:
+                        </span>
+                        <a href="https://wa.me/201002669119" target="_blank" class="flex items-center justify-between p-2.5 bg-emerald-50 text-emerald-800 rounded-lg border border-emerald-200 text-xs font-bold transition hover:bg-emerald-100">
+                            <span class="flex items-center gap-2">
+                                <i class="fa-brands fa-whatsapp text-base text-emerald-600"></i>
+                                <span dir="ltr">01002669119</span>
+                            </span>
+                            <span class="text-[10px] bg-emerald-600 text-white px-2 py-0.5 rounded">مراسلة فورية</span>
+                        </a>
+                    </div>
                 </div>
             </div>
 
@@ -297,29 +303,37 @@
                     <button id="modalTabSignIn" onclick="setAuthMode('signin')" class="w-1/2 pb-2 border-b-2 border-amazon-orange text-amazon-navy" data-i18n="signIn">تسجيل الدخول</button>
                     <button id="modalTabSignUp" onclick="setAuthMode('signup')" class="w-1/2 pb-2 text-gray-400 border-b-2 border-transparent" data-i18n="signUp">حساب جديد</button>
                 </div>
-                <div class="space-y-3 text-xs">
+                
+                <div id="authFieldsStep1" class="space-y-3 text-xs">
                     <input type="tel" id="authPhone" placeholder="رقم الجوال" class="w-full p-2.5 border rounded-xl bg-gray-50">
                     <input type="password" id="authPass" placeholder="كلمة المرور" class="w-full p-2.5 border rounded-xl bg-gray-50">
                     <div id="signupOnlyFields" class="space-y-3 hidden">
                         <input type="text" id="authName" placeholder="الاسم الكامل" class="w-full p-2.5 border rounded-xl bg-gray-50">
                         <input type="text" id="authAddress" placeholder="العنوان التفصيلي" class="w-full p-2.5 border rounded-xl bg-gray-50">
                     </div>
+                    <button onclick="handleAuthSubmit()" id="btnAuthSubmitStep1" class="w-full bg-amazon-button text-gray-900 font-bold py-2.5 rounded-xl shadow" data-i18n="saveAndContinue">حفظ ومتابعة</button>
                 </div>
-                <button onclick="handleAuthSubmit()" class="w-full bg-amazon-button text-gray-900 font-bold py-2.5 rounded-xl shadow" data-i18n="saveAndContinue">حفظ ومتابعة</button>
-            </div>
-        </div>
 
-        <!-- SCRIPT MODAL -->
-        <div id="scriptModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
-            <div class="bg-white rounded-2xl w-full max-w-md p-5 space-y-4 shadow-2xl relative">
-                <button onclick="closeScriptModal()" class="absolute top-3 left-3 text-gray-400 hover:text-gray-600">
-                    <i class="fa-solid fa-xmark text-lg"></i>
-                </button>
-                <h3 class="text-sm font-bold text-amazon-navy border-b pb-2 flex items-center gap-2">
-                    <i class="fa-solid fa-sheet-plastic text-green-600"></i> إعداد رابط Google Apps Script
-                </h3>
-                <input type="url" id="scriptUrlInput" placeholder="https://script.google.com/macros/s/.../exec" class="w-full p-2.5 border rounded-xl bg-gray-50 text-xs font-mono">
-                <button onclick="saveScriptUrl()" class="w-full bg-amazon-navy text-white font-bold py-2 rounded-xl text-xs">حفظ الرابط</button>
+                <div id="authFieldsStep2" class="space-y-3 text-xs hidden text-center">
+                    <div class="bg-amber-50 p-4 rounded-2xl border border-amber-200 space-y-3">
+                        <i class="fa-brands fa-whatsapp text-emerald-600 text-4xl animate-bounce"></i>
+                        <h4 class="font-bold text-gray-800 text-sm">طلب التفعيل قيد المراجعة</h4>
+                        <p class="text-xs text-gray-600 leading-relaxed">
+                            تم إرسال طلب التفعيل بنجاح. يرجى الضغط على الزر بالأسفل لإرسال رسالة التفعيل إلى إدارة المتجر عبر الواتساب لتأكيد رقمك.
+                        </p>
+                        <a id="btnSendWhatsappMsg" href="#" target="_blank" class="inline-flex items-center justify-center gap-2 w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 rounded-xl shadow text-xs transition">
+                            <i class="fa-brands fa-whatsapp text-base"></i> إرسال طلب التفعيل عبر الواتساب
+                        </a>
+                    </div>
+
+                    <div class="pt-2 space-y-2">
+                        <button onclick="checkAdminApprovalStatus()" id="btnCheckApproval" class="w-full bg-amazon-navy text-amazon-yellow font-bold py-2.5 rounded-xl shadow hover:bg-amazon-lightNavy transition flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-rotate-right"></i> تحديث حالة التفعيل
+                        </button>
+                        <p id="approvalStatusMsg" class="text-[11px] font-bold text-gray-500"></p>
+                    </div>
+                </div>
+
             </div>
         </div>
 
@@ -353,7 +367,6 @@
                 signOut: "تسجيل الخروج",
                 appSettings: "إعدادات التطبيق",
                 appLang: "لغة التطبيق / Language",
-                scriptSetup: "تغيير رابط Google Sheets",
                 navHome: "الرئيسية",
                 navCart: "السلة",
                 navAccount: "حسابي",
@@ -363,7 +376,12 @@
                 kg: "كجم",
                 addToCart: "إضافة للسلة",
                 guest: "زائر",
-                notLoggedIn: "لم يتم تسجيل الدخول"
+                notLoggedIn: "لم يتم تسجيل الدخول",
+                pastOrders: "طلباتي السابقة",
+                updateStatuses: "تحديث الحالات",
+                noOrders: "لا توجد طلبات سابقة حتى الآن",
+                orderIdLabel: "رقم الطلب:",
+                itemsLabel: "المنتجات:"
             },
             en: {
                 deliverTo: "Deliver to: Select Location",
@@ -390,7 +408,6 @@
                 signOut: "Sign Out",
                 appSettings: "App Settings",
                 appLang: "Language / لغة التطبيق",
-                scriptSetup: "Change Google Sheets URL",
                 navHome: "Home",
                 navCart: "Cart",
                 navAccount: "Account",
@@ -400,7 +417,12 @@
                 kg: "kg",
                 addToCart: "Add to Cart",
                 guest: "Guest",
-                notLoggedIn: "Not Signed In"
+                notLoggedIn: "Not Signed In",
+                pastOrders: "My Past Orders",
+                updateStatuses: "Update Statuses",
+                noOrders: "No past orders yet",
+                orderIdLabel: "Order ID:",
+                itemsLabel: "Items:"
             }
         };
 
@@ -413,7 +435,7 @@
             lang: localStorage.getItem('miro_lang') || 'ar',
             user: JSON.parse(localStorage.getItem('miro_user')) || null,
             settings: {
-                scriptUrl: localStorage.getItem('miro_script_url') || '',
+                scriptUrl: "https://script.google.com/macros/s/AKfycbxA-zkChiW8DkrYbcU2_FiqQflnLVWlEbbUHUMbfLKSLe4d6xdFHfF1qcleyTBV5L-1/exec",
                 deliveryFee: 11
             },
             cart: JSON.parse(localStorage.getItem('miro_cart')) || [],
@@ -422,22 +444,18 @@
             selectedCategory: 'all'
         };
 
+        let tempRegistrationData = null;
+
         window.addEventListener('DOMContentLoaded', () => {
             applyLanguageUI();
             renderProducts(state.products);
             updateCartUI();
             updateProfileUI();
             updateOrdersHistoryUI();
-            
-            if(state.settings.scriptUrl) {
-                const input = document.getElementById('scriptUrlInput');
-                if(input) input.value = state.settings.scriptUrl;
-            }
 
             fetchDataFromSheets();
         });
 
-        // دالة إخفاء شاشة التحميل بانسيابية
         function hideLoadingScreen() {
             const loader = document.getElementById('loading-screen');
             if (loader) {
@@ -457,6 +475,8 @@
             applyLanguageUI();
             renderProducts(state.products);
             updateCartUI();
+            updateProfileUI();
+            updateOrdersHistoryUI();
         }
 
         function applyLanguageUI() {
@@ -480,7 +500,7 @@
             if (state.user) {
                 const nameStr = state.user.name || '';
                 const addrStr = state.user.address || '';
-                locSpan.textContent = `التوصيل إلى: ${nameStr} - ${addrStr}`;
+                locSpan.textContent = state.lang === 'ar' ? `التوصيل إلى: ${nameStr} - ${addrStr}` : `Deliver to: ${nameStr} - ${addrStr}`;
             } else {
                 locSpan.textContent = i18n[state.lang].deliverTo;
             }
@@ -532,7 +552,6 @@
                             return local;
                         });
 
-                        // إضافة الطلبات المفقودة من الشيت للعميل المسجل
                         if (state.user && state.user.phone) {
                             const phoneClean = String(state.user.phone).trim();
                             data.orders.forEach(sheetOrder => {
@@ -585,18 +604,13 @@
             } catch (err) {
                 console.log("Fetch error:", err);
             } finally {
-                // إخفاء شاشة التحميل فور اكتمال الجلب
                 hideLoadingScreen();
             }
         }
 
         async function requestOrderCancellation(orderId) {
-            if (!confirm("هل تريد حقاً إرسال طلب إلغاء لهذا الطلب؟")) return;
-
-            if (!state.settings.scriptUrl) {
-                alert("يرجى التأكد من ضبط رابط Google Apps Script أولاً!");
-                return;
-            }
+            const confirmMsg = state.lang === 'ar' ? "هل تريد حقاً إرسال طلب إلغاء لهذا الطلب؟" : "Are you sure you want to request cancellation for this order?";
+            if (!confirm(confirmMsg)) return;
 
             try {
                 const response = await fetch(state.settings.scriptUrl, {
@@ -609,15 +623,14 @@
                 const resData = await response.json();
 
                 if (resData.status === "already_approved") {
-                    alert("عذراً، لا يمكن إلغاء الطلب لأنه تم قبوله أو تنفيذه بالفعل من قبل الإدارة.");
+                    alert(state.lang === 'ar' ? "عذراً، لا يمكن إلغاء الطلب لأنه تم قبوله أو تنفيذه بالفعل من قبل الإدارة." : "Sorry, order cannot be cancelled as it's already approved.");
                 } else {
-                    alert("تم إرسال طلب الإلغاء إلى الإدارة بنجاح.");
+                    alert(state.lang === 'ar' ? "تم إرسال طلب الإلغاء إلى الإدارة بنجاح." : "Cancellation request sent successfully.");
                 }
 
                 setTimeout(fetchDataFromSheets, 500);
             } catch (e) {
                 console.log("Error sending cancel request:", e);
-                alert("تم إرسال طلب الإلغاء.");
             }
         }
 
@@ -626,40 +639,52 @@
             if (!container) return;
 
             let localOrders = JSON.parse(localStorage.getItem('miro_orders')) || [];
+            const l = i18n[state.lang];
 
             if (localOrders.length === 0) {
-                container.innerHTML = `<p class="text-gray-400 text-center py-2">لا توجد طلبات سابقة حتى الآن</p>`;
+                container.innerHTML = `<p class="text-gray-400 text-center py-2">${l.noOrders}</p>`;
                 return;
             }
 
             container.innerHTML = localOrders.map(order => {
                 const statusText = order.status ? String(order.status).trim() : 'قيد الانتظار';
-                const isApproved = statusText.includes('تم') || statusText.includes('موافقة') || statusText.includes('مقبول');
-                const isCancelRequested = statusText.includes('إلغاء');
+                
+                const isCancelled = statusText.includes('تم الالغاء') || statusText.includes('تم الإلغاء') || statusText.includes('ملغي') || statusText.includes('Cancelled');
+                const isApproved = !isCancelled && (statusText.includes('تم') || statusText.includes('موافقة') || statusText.includes('مقبول'));
+                const isCancelRequested = !isCancelled && statusText.includes('إلغاء');
+
+                let statusBadgeClass = 'bg-yellow-100 text-yellow-800';
+                if (isCancelled) {
+                    statusBadgeClass = 'bg-red-100 text-red-700 border border-red-200';
+                } else if (isApproved) {
+                    statusBadgeClass = 'bg-green-100 text-green-700';
+                } else if (isCancelRequested) {
+                    statusBadgeClass = 'bg-orange-100 text-orange-800';
+                }
 
                 let actionButtonHtml = '';
-                if (isApproved) {
-                    actionButtonHtml = `<span class="text-gray-400 text-xs" title="لا يمكن التعديل بعد الموافقة"><i class="fa-solid fa-lock text-emerald-600"></i></span>`;
+                if (isCancelled || isApproved) {
+                    actionButtonHtml = `<span class="text-gray-400 text-xs" title="لا يمكن التعديل"><i class="fa-solid fa-lock ${isCancelled ? 'text-red-500' : 'text-emerald-600'}"></i></span>`;
                 } else if (isCancelRequested) {
-                    actionButtonHtml = `<span class="text-[10px] text-orange-600 font-bold bg-orange-50 px-2 py-0.5 rounded border border-orange-200">قيد الإلغاء</span>`;
+                    actionButtonHtml = `<span class="text-[10px] text-orange-600 font-bold bg-orange-50 px-2 py-0.5 rounded border border-orange-200">${state.lang === 'ar' ? 'قيد الإلغاء' : 'Cancelling'}</span>`;
                 } else {
-                    actionButtonHtml = `<button onclick="requestOrderCancellation('${order.id}')" class="text-red-500 hover:text-red-700 text-[11px] px-2 py-0.5 rounded border border-red-200 bg-red-50 transition" title="طلب إلغاء الطلب">طلب إلغاء</button>`;
+                    actionButtonHtml = `<button onclick="requestOrderCancellation('${order.id}')" class="text-amber-800 hover:text-amber-900 font-bold text-[11px] px-2.5 py-0.5 rounded border border-amber-400 bg-amber-50 hover:bg-amber-100 transition">${state.lang === 'ar' ? 'طلب إلغاء' : 'Cancel'}</button>`;
                 }
 
                 return `
                 <div class="p-2.5 bg-gray-50 rounded-xl border border-gray-100 space-y-1 relative">
                     <div class="flex justify-between items-center font-bold text-gray-800">
-                        <span class="text-emerald-700">الإجمالي: ${order.total} ج.م</span>
+                        <span class="text-emerald-700">${state.lang === 'ar' ? 'الإجمالي:' : 'Total:'} ${order.total} ${l.egp}</span>
                         <div class="flex items-center gap-2">
-                            <span class="text-[10px] px-2 py-0.5 rounded font-bold ${isApproved ? 'bg-green-100 text-green-700' : isCancelRequested ? 'bg-orange-100 text-orange-800' : 'bg-yellow-100 text-yellow-800'}">
+                            <span class="text-[10px] px-2 py-0.5 rounded font-bold ${statusBadgeClass}">
                                 ${statusText}
                             </span>
                             ${actionButtonHtml}
                         </div>
                     </div>
-                    <p class="text-gray-600 truncate">المنتجات: ${order.items}</p>
+                    <p class="text-gray-600 truncate">${l.itemsLabel} ${order.items}</p>
                     <div class="flex justify-between items-center text-[10px] text-gray-500 font-semibold pt-1 border-t border-gray-200">
-                        <span>رقم الطلب: <strong class="text-amazon-navy">${order.id}</strong></span>
+                        <span>${l.orderIdLabel} <strong class="text-amazon-navy">${order.id}</strong></span>
                         <span>${order.date || ''}</span>
                     </div>
                 </div>
@@ -675,10 +700,10 @@
             if (!grid) return;
 
             const filtered = state.selectedCategory === 'all' ? list : list.filter(p => p.category === state.selectedCategory);
-            if (countLabel) countLabel.textContent = `(${filtered.length} منتج)`;
+            if (countLabel) countLabel.textContent = `(${filtered.length} ${state.lang === 'ar' ? 'منتج' : 'items'})`;
 
             if (filtered.length === 0) {
-                grid.innerHTML = `<div class="col-span-2 text-center py-8 text-gray-400 text-xs">لا توجد منتجات مطابقة</div>`;
+                grid.innerHTML = `<div class="col-span-2 text-center py-8 text-gray-400 text-xs">${state.lang === 'ar' ? 'لا توجد منتجات مطابقة' : 'No matching products'}</div>`;
                 return;
             }
 
@@ -692,13 +717,9 @@
                 if (itemQty > 0) {
                     actionButtonHtml = `
                     <div class="flex items-center justify-between bg-gray-100 p-1 rounded-xl border border-gray-200">
-                        <button onclick="updateQty('${p.id}', 1)" class="w-8 h-8 bg-amazon-orange text-white font-black text-base rounded-lg flex items-center justify-center shadow-sm hover:bg-amazon-orange/90 transition">
-                            +
-                        </button>
+                        <button onclick="updateQty('${p.id}', 1)" class="w-8 h-8 bg-amazon-orange text-white font-black text-base rounded-lg flex items-center justify-center shadow-sm">+</button>
                         <span class="font-black text-xs text-gray-800 px-3">${itemQty}</span>
-                        <button onclick="updateQty('${p.id}', -1)" class="w-8 h-8 bg-white text-gray-700 border border-gray-300 font-black text-base rounded-lg flex items-center justify-center shadow-sm hover:bg-gray-50 transition">
-                            -
-                        </button>
+                        <button onclick="updateQty('${p.id}', -1)" class="w-8 h-8 bg-white text-gray-700 border border-gray-300 font-black text-base rounded-lg flex items-center justify-center shadow-sm">-</button>
                     </div>
                     `;
                 } else {
@@ -719,14 +740,12 @@
                             </span>
                         </div>
                         <h4 class="font-bold text-gray-800 text-xs line-clamp-1 mb-0.5">${p.name}</h4>
-                        <div class="text-[10px] text-gray-400 mb-0.5">السعر لكل ${p.unit || l.kg}</div>
+                        <div class="text-[10px] text-gray-400 mb-0.5">${state.lang === 'ar' ? 'السعر لكل' : 'Price per'} ${p.unit || l.kg}</div>
                         <div class="flex items-baseline gap-1 mb-2">
                             <span class="font-extrabold text-sm text-emerald-700">${p.price} ${l.egp}</span>
                         </div>
                     </div>
-                    <div>
-                        ${actionButtonHtml}
-                    </div>
+                    <div>${actionButtonHtml}</div>
                 </div>
                 `;
             }).join('');
@@ -827,9 +846,9 @@
                     <div class="flex items-center gap-2">
                         <span class="font-black text-xs text-emerald-700">${item.price * item.qty} ${l.egp}</span>
                         <div class="flex items-center gap-1 border rounded-lg bg-white p-0.5">
-                            <button onclick="updateQty('${item.id}', 1)" class="w-5 h-5 bg-gray-100 text-gray-700 font-bold text-xs rounded hover:bg-gray-200">+</button>
+                            <button onclick="updateQty('${item.id}', 1)" class="w-5 h-5 bg-gray-100 text-gray-700 font-bold text-xs rounded">+</button>
                             <span class="text-xs font-bold px-1">${item.qty}</span>
-                            <button onclick="updateQty('${item.id}', -1)" class="w-5 h-5 bg-gray-100 text-gray-700 font-bold text-xs rounded hover:bg-gray-200">-</button>
+                            <button onclick="updateQty('${item.id}', -1)" class="w-5 h-5 bg-gray-100 text-gray-700 font-bold text-xs rounded">-</button>
                         </div>
                     </div>
                 </div>
@@ -846,20 +865,20 @@
 
         async function submitOrder() {
             if (!state.user) {
-                alert("يرجى تسجيل الدخول أولاً لتأكيد الطلب!");
+                alert(state.lang === 'ar' ? "يرجى تسجيل الدخول أولاً لتأكيد الطلب!" : "Please sign in first to confirm order!");
                 openLoginModal('signin');
                 return;
             }
 
             if (state.cart.length === 0) {
-                alert("سلة التسوق فارغة!");
+                alert(state.lang === 'ar' ? "سلة التسوق فارغة!" : "Cart is empty!");
                 return;
             }
 
             const btn = document.getElementById('btnSubmitOrder');
             if(btn) {
                 btn.disabled = true;
-                btn.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i> جاري إرسال الطلب...`;
+                btn.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i> ${state.lang === 'ar' ? 'جاري إرسال الطلب...' : 'Sending order...'}`;
             }
 
             const subtotal = state.cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
@@ -882,17 +901,15 @@
             let newOrderId = 'ORD-' + Math.floor(100000 + Math.random() * 900000);
             const currentTime = new Date().toLocaleString('ar-EG', { hour: '2-digit', minute: '2-digit', hour12: true, year: 'numeric', month: '2-digit', day: '2-digit' });
 
-            if (state.settings.scriptUrl) {
-                try {
-                    const response = await fetch(state.settings.scriptUrl, {
-                        method: 'POST',
-                        body: JSON.stringify(payload)
-                    });
-                    const resData = await response.json();
-                    if(resData.id) newOrderId = resData.id;
-                } catch (e) {
-                    console.log("Error sending to Apps Script:", e);
-                }
+            try {
+                const response = await fetch(state.settings.scriptUrl, {
+                    method: 'POST',
+                    body: JSON.stringify(payload)
+                });
+                const resData = await response.json();
+                if(resData.id) newOrderId = resData.id;
+            } catch (e) {
+                console.log("Error sending to Apps Script:", e);
             }
 
             let localOrders = JSON.parse(localStorage.getItem('miro_orders')) || [];
@@ -915,10 +932,10 @@
 
             if(btn) {
                 btn.disabled = false;
-                btn.innerHTML = `<i class="fa-solid fa-check-circle text-base"></i> <span>تأكيد وإرسال الطلب</span>`;
+                btn.innerHTML = `<i class="fa-solid fa-check-circle text-base"></i> <span>${i18n[state.lang].confirmOrder}</span>`;
             }
 
-            alert("تم إرسال طلبك بنجاح! شكراً لتسوقك من Miro MarkEt");
+            alert(state.lang === 'ar' ? "تم إرسال طلبك بنجاح! شكراً لتسوقك من Miro MarkEt" : "Order sent successfully! Thank you for shopping with Miro MarkEt");
             switchTab('account');
             fetchDataFromSheets();
         }
@@ -957,6 +974,9 @@
         function closeLoginModal() {
             const modal = document.getElementById('loginModal');
             if(modal) modal.classList.add('hidden');
+            
+            document.getElementById('authFieldsStep1').classList.remove('hidden');
+            document.getElementById('authFieldsStep2').classList.add('hidden');
         }
 
         function setAuthMode(mode) {
@@ -964,6 +984,9 @@
             const tabIn = document.getElementById('modalTabSignIn');
             const tabUp = document.getElementById('modalTabSignUp');
             const signupFields = document.getElementById('signupOnlyFields');
+
+            document.getElementById('authFieldsStep1').classList.remove('hidden');
+            document.getElementById('authFieldsStep2').classList.add('hidden');
 
             if(mode === 'signin') {
                 tabIn.className = "w-1/2 pb-2 border-b-2 border-amazon-orange text-amazon-navy";
@@ -983,7 +1006,7 @@
             const address = document.getElementById('authAddress').value.trim();
 
             if (!phone || !password) {
-                alert("يرجى إدخال رقم الجوال وكلمة المرور!");
+                alert(state.lang === 'ar' ? "يرجى إدخال رقم الجوال وكلمة المرور!" : "Please enter phone and password!");
                 return;
             }
 
@@ -991,45 +1014,94 @@
                 await fetchDataFromSheets();
                 const cust = state.customers.find(c => String(c.phone).trim() === phone);
                 if (!cust) {
-                    alert("رقم الهاتف غير مسجل! يرجى إنشاء حساب جديد.");
+                    alert(state.lang === 'ar' ? "رقم الهاتف غير مسجل! يرجى إنشاء حساب جديد." : "Phone not registered! Please sign up.");
                     return;
                 }
                 if (String(cust.password).trim() !== password) {
-                    alert("كلمة المرور غير صحيحة!");
+                    alert(state.lang === 'ar' ? "كلمة المرور غير صحيحة!" : "Incorrect password!");
                     return;
                 }
+
+                const statusStr = cust.status ? String(cust.status).trim() : 'قيد الانتظار';
+                if (statusStr !== 'مفعل' && statusStr !== 'Approved') {
+                    alert(state.lang === 'ar' ? "حسابك ما زال قيد المراجعة والتفعيل من إدارة المتجر. يرجى التواصل عبر الواتساب لتفعيل حسابك." : "Account pending approval. Please contact via WhatsApp.");
+                    return;
+                }
+
                 state.user = { phone: cust.phone, name: cust.name || 'عميل ميرو', address: cust.address || '' };
+                localStorage.setItem('miro_user', JSON.stringify(state.user));
+                updateProfileUI();
+                closeLoginModal();
+                updateCartUI();
+                alert(state.lang === 'ar' ? "تم تسجيل الدخول بنجاح!" : "Signed in successfully!");
+                fetchDataFromSheets();
             } else {
                 if (!name || !address) {
-                    alert("يرجى إدخال الاسم والعنوان لإتمام التسجيل!");
+                    alert(state.lang === 'ar' ? "يرجى إدخال الاسم والعنوان لإتمام التسجيل!" : "Please enter name and address!");
                     return;
                 }
-                state.user = { phone: phone, name: name, address: address };
 
-                if (state.settings.scriptUrl) {
-                    try {
-                        await fetch(state.settings.scriptUrl, {
-                            method: 'POST',
-                            body: JSON.stringify({
-                                action: 'register',
-                                phone: phone,
-                                name: name,
-                                address: address,
-                                password: password
-                            })
-                        });
-                    } catch (e) {
-                        console.log("Error registering:", e);
+                tempRegistrationData = { phone, name, address, password };
+
+                try {
+                    await fetch(state.settings.scriptUrl, {
+                        method: 'POST',
+                        body: JSON.stringify({
+                            action: 'register',
+                            phone: phone,
+                            name: name,
+                            address: address,
+                            password: password,
+                            status: 'قيد الانتظار'
+                        })
+                    });
+                } catch (e) {
+                    console.log("Error registering:", e);
+                }
+
+                const shopPhone = "201002669119";
+                const textMsg = encodeURIComponent(`مرحباً ميرو ماركت، طلب تفعيل حساب جديد:\nالاسم: ${name}\nرقم الجوال: ${phone}`);
+                const waUrl = `https://wa.me/${shopPhone}?text=${textMsg}`;
+                
+                document.getElementById('btnSendWhatsappMsg').href = waUrl;
+
+                document.getElementById('authFieldsStep1').classList.add('hidden');
+                document.getElementById('authFieldsStep2').classList.remove('hidden');
+                document.getElementById('approvalStatusMsg').textContent = "";
+            }
+        }
+
+        async function checkAdminApprovalStatus() {
+            const statusMsg = document.getElementById('approvalStatusMsg');
+            const btn = document.getElementById('btnCheckApproval');
+            
+            if (statusMsg) statusMsg.textContent = state.lang === 'ar' ? "جاري التحقق من حالة التفعيل..." : "Checking approval status...";
+            if (btn) btn.disabled = true;
+
+            await fetchDataFromSheets();
+
+            if (tempRegistrationData) {
+                const cust = state.customers.find(c => String(c.phone).trim() === String(tempRegistrationData.phone).trim());
+                if (cust) {
+                    const statusStr = cust.status ? String(cust.status).trim() : 'قيد الانتظار';
+                    if (statusStr === 'مفعل' || statusStr === 'Approved') {
+                        state.user = { 
+                            phone: tempRegistrationData.phone, 
+                            name: tempRegistrationData.name, 
+                            address: tempRegistrationData.address 
+                        };
+                        localStorage.setItem('miro_user', JSON.stringify(state.user));
+                        updateProfileUI();
+                        closeLoginModal();
+                        updateCartUI();
+                        alert(state.lang === 'ar' ? "تهانينا! تم تفعيل حسابك بنجاح من إدارة المتجر." : "Congratulations! Your account has been approved.");
+                        return;
                     }
                 }
             }
 
-            localStorage.setItem('miro_user', JSON.stringify(state.user));
-            updateProfileUI();
-            closeLoginModal();
-            updateCartUI();
-            alert(authMode === 'signup' ? "تم تسجيل الحساب بنجاح!" : "تم تسجيل الدخول بنجاح!");
-            fetchDataFromSheets();
+            if (statusMsg) statusMsg.textContent = state.lang === 'ar' ? "الحساب ما زال قيد الانتظار. يرجى التأكد من إرسال رسالة الواتساب للإدارة." : "Account still pending. Please ensure WhatsApp message was sent.";
+            if (btn) btn.disabled = false;
         }
 
         function handleSignOut() {
@@ -1037,25 +1109,6 @@
             localStorage.removeItem('miro_user');
             updateProfileUI();
             updateOrdersHistoryUI();
-        }
-
-        function openScriptModal() {
-            const modal = document.getElementById('scriptModal');
-            if(modal) modal.classList.remove('hidden');
-        }
-
-        function closeScriptModal() {
-            const modal = document.getElementById('scriptModal');
-            if(modal) modal.classList.add('hidden');
-        }
-
-        function saveScriptUrl() {
-            const url = document.getElementById('scriptUrlInput').value.trim();
-            state.settings.scriptUrl = url;
-            localStorage.setItem('miro_script_url', url);
-            closeScriptModal();
-            alert("تم حفظ رابط Google Apps Script بنجاح!");
-            fetchDataFromSheets();
         }
     </script>
 </body>
