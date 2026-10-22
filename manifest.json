@@ -1,18 +1,20 @@
 {
   "name": "Miro MarkEt",
-  "short_name": "Miro Market",
-  "description": "متجر ميرو ماركت للخضروات والفاكهة",
+  "short_name": "Miro MarkEt",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#ffffff",
-  "theme_color": "#ffffff",
-  "orientation": "any",
-  "dir": "rtl",
-  "lang": "ar",
+  "theme_color": "#131921",
   "icons": [
     {
-      "src": "icon.png",
-      "sizes": "192x192 512x512",
+      "src": "home.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "home.png",
+      "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
     }
