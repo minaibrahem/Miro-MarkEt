@@ -4,10 +4,11 @@
   "display": "standalone",
   "name": "Miro MarkEt",
   "orientation": "any",
-  "scope": "/",
+  "scope": "/https://minaibrahem.github.io/Miro-MarkEt/",
   "short_name": "Miro MarkEt",
-  "start_url": "/",
+  "start_url": "/https://minaibrahem.github.io/Miro-MarkEt/",
   "theme_color": "#ffffff",
   "id": "Market",
-  "description": "Market"
+  "description": "Market",
+  "lang": "ar"
 }
