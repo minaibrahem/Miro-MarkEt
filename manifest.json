@@ -1,14 +1,25 @@
 {
-  "background_color": "#ffffff",
-  "dir": "ltr",
-  "display": "standalone",
   "name": "Miro MarkEt",
-  "orientation": "any",
-  "scope": "/https://minaibrahem.github.io/Miro-MarkEt/",
-  "short_name": "Miro MarkEt",
-  "start_url": "/https://minaibrahem.github.io/Miro-MarkEt/",
+  "short_name": "Miro Market",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#ffffff",
   "theme_color": "#ffffff",
-  "id": "Market",
-  "description": "Market",
-  "lang": "ar"
+  "orientation": "any",
+  "dir": "rtl",
+  "lang": "ar",
+  "icons": [
+    {
+      "src": "https://via.placeholder.com/192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "https://via.placeholder.com/512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
 }
