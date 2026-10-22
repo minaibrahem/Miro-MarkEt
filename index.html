@@ -97,14 +97,14 @@
         z-index: 9999;
         transition: opacity 0.5s ease, visibility 0.5s ease;
     ">
-        <img src="home.png" alt="Miro MarkEt" style="width: 120px; height: 120px; border-radius: 20px; margin-bottom: 20px; object-fit: cover;" onerror="this.src='https://images.unsplash.com/photo-1540420773420-3366772f4999?w=400'">
+        <img src="home.png" alt="Miro MarkEt" style="width: 200px; height: 200px; border-radius: 20px; margin-bottom: 20px; object-fit: cover;" onerror="this.src='https://images.unsplash.com/photo-1540420773420-3366772f4999?w=400'">
         
         <div style="
             border: 4px solid #f3f3f3;
             border-top: 4px solid #008542;
             border-radius: 50%;
-            width: 40px;
-            height: 40px;
+            width: 100px;
+            height: 100px;
             animation: spin 1s linear infinite;
         "></div>
         
@@ -1088,8 +1088,10 @@
                 return;
             }
 
+            // جلب أحدث بيانات العملاء من Google Sheets أولاً للتحقق بدقة
+            await fetchDataFromSheets();
+
             if (authMode === 'signin') {
-                await fetchDataFromSheets();
                 const cust = state.customers.find(c => String(c.phone).trim() === phone);
                 if (!cust) {
                     showToast(state.lang === 'ar' ? "رقم الهاتف غير مسجل! يرجى إنشاء حساب جديد." : "Phone not registered!", "fa-user-xmark");
@@ -1114,6 +1116,14 @@
                 showToast(state.lang === 'ar' ? "تم تسجيل الدخول بنجاح!" : "Signed in successfully!", "fa-circle-check");
                 fetchDataFromSheets();
             } else {
+                // التحقق مما إذا كان رقم الهاتف مسجلاً مسبقاً ولديه كلمة مرور
+                const existingCustomer = state.customers.find(c => String(c.phone).trim() === phone);
+                
+                if (existingCustomer && existingCustomer.password && String(existingCustomer.password).trim() !== "") {
+                    showToast(state.lang === 'ar' ? "رقم الهاتف مسجل مسبقاً وله حساب وكلمة مرور! يرجى تسجيل الدخول مباشرة." : "Phone already registered!", "fa-triangle-exclamation");
+                    return; // إيقاف العملية تماماً وعدم إرسال أي بيانات لجوجل شيت
+                }
+
                 if (!name || !address) {
                     showToast(state.lang === 'ar' ? "يرجى إدخال الاسم والعنوان لإتمام التسجيل!" : "Please enter name and address!", "fa-pen");
                     return;
@@ -1122,6 +1132,7 @@
                 tempRegistrationData = { phone, name, address, password };
 
                 try {
+                    // إرسال البيانات لجوجل شيت فقط إذا لم يكن مسجلاً من قبل
                     await fetch(state.settings.scriptUrl, {
                         method: 'POST',
                         body: JSON.stringify({
