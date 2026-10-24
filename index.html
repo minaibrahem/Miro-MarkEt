@@ -59,15 +59,15 @@
 </head>
 <body class="bg-gray-100 text-gray-900 pb-20 select-none">
 
-    <!-- Custom Toast Notification (معدل ليكون في الطبقة العليا دائماً) -->
-<div id="customToast" class="fixed top-5 left-1/2 -translate-x-1/2 z-[9999] transition-all duration-300 opacity-0 pointer-events-none transform -translate-y-4">
-    <div class="bg-gray-900 text-white px-5 py-3 rounded-2xl shadow-2xl flex items-center gap-3 border border-gray-700 min-w-[280px]">
-        <i id="toastIcon" class="fa-solid fa-circle-info text-amazon-yellow text-lg"></i>
-        <span id="toastMessage" class="text-xs font-bold font-cairo"></span>
+    <!-- Custom Toast Notification -->
+    <div id="customToast" class="fixed top-5 left-1/2 -translate-x-1/2 z-[9999] transition-all duration-300 opacity-0 pointer-events-none transform -translate-y-4">
+        <div class="bg-gray-900 text-white px-5 py-3 rounded-2xl shadow-2xl flex items-center gap-3 border border-gray-700 min-w-[280px]">
+            <i id="toastIcon" class="fa-solid fa-circle-info text-amazon-yellow text-lg"></i>
+            <span id="toastMessage" class="text-xs font-bold font-cairo"></span>
+        </div>
     </div>
-</div>
 
-    <!-- Custom Confirm Modal (بديل الـ confirm الافتراضي للمتصفح) -->
+    <!-- Custom Confirm Modal -->
     <div id="customConfirmModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
         <div class="bg-white rounded-2xl w-full max-w-sm p-5 space-y-4 shadow-2xl text-center">
             <div class="w-12 h-12 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center mx-auto text-xl">
@@ -336,10 +336,20 @@
                 <div id="authFieldsStep1" class="space-y-3 text-xs">
                     <input type="tel" id="authPhone" placeholder="رقم الجوال" class="w-full p-2.5 border rounded-xl bg-gray-50">
                     <input type="password" id="authPass" placeholder="كلمة المرور" class="w-full p-2.5 border rounded-xl bg-gray-50">
+                    
+                    <!-- 🟢 زر نسيت كلمة المرور الخاص بتسجيل الدخول -->
+                    <div id="forgotPassContainer" class="text-left px-1">
+                        <a href="#" onclick="openForgotPasswordWhatsApp(event)" class="text-[11px] text-emerald-700 font-bold hover:underline inline-flex items-center gap-1">
+                            <i class="fa-solid fa-key text-amazon-orange text-[10px]"></i> نسيت كلمة المرور؟
+                        </a>
+                    </div>
+
                     <div id="signupOnlyFields" class="space-y-3 hidden">
                         <input type="text" id="authName" placeholder="الاسم الكامل" class="w-full p-2.5 border rounded-xl bg-gray-50">
+                        <input type="email" id="authEmail" placeholder="البريد الإلكتروني (مثال: name@gmail.com)" class="w-full p-2.5 border rounded-xl bg-gray-50">
                         <input type="text" id="authAddress" placeholder="العنوان التفصيلي" class="w-full p-2.5 border rounded-xl bg-gray-50">
                     </div>
+                    
                     <button onclick="handleAuthSubmit()" id="btnAuthSubmitStep1" class="w-full bg-amazon-button text-gray-900 font-bold py-2.5 rounded-xl shadow" data-i18n="saveAndContinue">حفظ ومتابعة</button>
                 </div>
 
@@ -370,7 +380,6 @@
 
     <!-- JAVASCRIPT -->
     <script>
-        // دالة عرض التنبيهات المخصصة بدون ظهور اسم الدومين
         function showToast(message, icon = 'fa-circle-info') {
             const toast = document.getElementById('customToast');
             const toastMsg = document.getElementById('toastMessage');
@@ -390,12 +399,10 @@
             }, 3500);
         }
 
-        // استبدال أوامر alert بـ Toast مخصص
         window.alert = function(message) {
             showToast(message, 'fa-bell');
         };
 
-        // دالة إظهار نافذة التأكيد المخصصة بدلاً من confirm المزعجة
         let pendingConfirmCallback = null;
         function openCustomConfirm(title, message, onConfirm) {
             const modal = document.getElementById('customConfirmModal');
@@ -596,7 +603,9 @@
                 activeBtn.classList.add('text-amazon-orange', 'font-bold');
                 activeBtn.classList.remove('text-gray-500');
             }
-            if (tabName === 'account') fetchDataFromSheets();
+
+            // 🟢 تحديث البيانات فوراً مع فتح أي تاب
+            fetchDataFromSheets();
         }
 
         async function fetchDataFromSheets() {
@@ -614,6 +623,32 @@
                     
                     if (data.customers && Array.isArray(data.customers)) {
                         state.customers = data.customers;
+
+                        // 🔴 الفحص التلقائي لحالة الحساب وتأكيد التفعيل/تسجيل الخروج
+                        if (state.user && state.user.phone) {
+                            const loggedPhone = String(state.user.phone).trim();
+                            const currentCustData = state.customers.find(c => String(c.phone).trim() === loggedPhone);
+
+                            if (currentCustData) {
+                                const statusStr = currentCustData.status ? String(currentCustData.status).trim() : 'قيد الانتظار';
+                                const isApproved = statusStr === 'مفعل' || statusStr === 'Approved';
+
+                                if (!isApproved) {
+                                    // 🛑 إذا تغيرت حالة الحساب إلى قيد الانتظار/قيد الإجراء -> خروج فوراً
+                                    handleSignOut();
+                                    showToast(
+                                        state.lang === 'ar' ? "تم تسجيل الخروج: حسابك قيد المراجعة أو تم إيقافه من الإدارة" : "Signed out: Account pending or deactivated", 
+                                        "fa-triangle-exclamation"
+                                    );
+                                } else {
+                                    // تحديث بيانات اسم وعنوان العميل إذا تعدلت من الشيت
+                                    state.user.name = currentCustData.name || state.user.name;
+                                    state.user.address = currentCustData.address || state.user.address;
+                                    localStorage.setItem('miro_user', JSON.stringify(state.user));
+                                    updateProfileUI();
+                                }
+                            }
+                        }
                     }
 
                     if (data.orders && Array.isArray(data.orders)) {
@@ -683,7 +718,6 @@
             }
         }
 
-        // تم استبدال النافذة التقليدية بـ openCustomConfirm
         function requestOrderCancellation(orderId) {
             const confirmTitle = state.lang === 'ar' ? "إلغاء الطلب" : "Cancel Order";
             const confirmMsg = state.lang === 'ar' ? "هل تريد حقاً إرسال طلب إلغاء لهذا الطلب؟" : "Are you sure you want to request cancellation for this order?";
@@ -708,6 +742,34 @@
                     setTimeout(fetchDataFromSheets, 500);
                 } catch (e) {
                     console.log("Error sending cancel request:", e);
+                }
+            });
+        }
+
+        function requestOrderUncancel(orderId) {
+            const confirmTitle = state.lang === 'ar' ? "التراجع عن الإلغاء" : "Revert Cancellation";
+            const confirmMsg = state.lang === 'ar' ? "هل تريد التراجع عن طلب إلغاء هذا الطلب وإعادته لقيد الانتظار؟" : "Do you want to revert the cancellation request?";
+
+            openCustomConfirm(confirmTitle, confirmMsg, async () => {
+                try {
+                    const response = await fetch(state.settings.scriptUrl, {
+                        method: 'POST',
+                        body: JSON.stringify({
+                            action: 'uncancel',
+                            order_id: orderId
+                        })
+                    });
+                    const resData = await response.json();
+
+                    if (resData.status === "already_approved") {
+                        showToast(state.lang === 'ar' ? "عذراً، لا يمكن التعديل لأن الطلب تم قبوله بالفعل." : "Cannot revert, order is already approved.", "fa-circle-xmark");
+                    } else {
+                        showToast(state.lang === 'ar' ? "تم التراجع عن طلب الإلغاء واستمرار الطلب." : "Cancellation reverted successfully.", "fa-circle-check");
+                    }
+
+                    setTimeout(fetchDataFromSheets, 500);
+                } catch (e) {
+                    console.log("Error sending uncancel request:", e);
                 }
             });
         }
@@ -744,7 +806,13 @@
                 if (isCancelled || isApproved) {
                     actionButtonHtml = `<span class="text-gray-400 text-xs" title="لا يمكن التعديل"><i class="fa-solid fa-lock ${isCancelled ? 'text-red-500' : 'text-emerald-600'}"></i></span>`;
                 } else if (isCancelRequested) {
-                    actionButtonHtml = `<span class="text-[10px] text-orange-600 font-bold bg-orange-50 px-2 py-0.5 rounded border border-orange-200">${state.lang === 'ar' ? 'قيد الإلغاء' : 'Cancelling'}</span>`;
+                    actionButtonHtml = `
+                    <div class="flex items-center gap-1.5">
+                        <span class="text-[10px] text-orange-600 font-bold bg-orange-50 px-2 py-0.5 rounded border border-orange-200">${state.lang === 'ar' ? 'قيد الإلغاء' : 'Cancelling'}</span>
+                        <button onclick="requestOrderUncancel('${order.id}')" class="text-emerald-700 hover:text-emerald-800 font-bold text-[10px] px-2 py-0.5 rounded border border-emerald-500 bg-emerald-50 hover:bg-emerald-100 transition flex items-center gap-1">
+                            <i class="fa-solid fa-rotate-left"></i> ${state.lang === 'ar' ? 'تراجع' : 'Revert'}
+                        </button>
+                    </div>`;
                 } else {
                     actionButtonHtml = `<button onclick="requestOrderCancellation('${order.id}')" class="text-amber-800 hover:text-amber-900 font-bold text-[11px] px-2.5 py-0.5 rounded border border-amber-400 bg-amber-50 hover:bg-amber-100 transition">${state.lang === 'ar' ? 'طلب إلغاء' : 'Cancel'}</button>`;
                 }
@@ -1062,6 +1130,7 @@
             const tabIn = document.getElementById('modalTabSignIn');
             const tabUp = document.getElementById('modalTabSignUp');
             const signupFields = document.getElementById('signupOnlyFields');
+            const forgotPassBtn = document.getElementById('forgotPassContainer');
 
             document.getElementById('authFieldsStep1').classList.remove('hidden');
             document.getElementById('authFieldsStep2').classList.add('hidden');
@@ -1070,17 +1139,35 @@
                 tabIn.className = "w-1/2 pb-2 border-b-2 border-amazon-orange text-amazon-navy";
                 tabUp.className = "w-1/2 pb-2 text-gray-400 border-b-2 border-transparent";
                 if (signupFields) signupFields.classList.add('hidden');
+                if (forgotPassBtn) forgotPassBtn.classList.remove('hidden');
             } else {
                 tabUp.className = "w-1/2 pb-2 border-b-2 border-amazon-orange text-amazon-navy";
                 tabIn.className = "w-1/2 pb-2 text-gray-400 border-b-2 border-transparent";
                 if (signupFields) signupFields.classList.remove('hidden');
+                if (forgotPassBtn) forgotPassBtn.classList.add('hidden');
             }
+        }
+
+        // 🟢 دالة فتح محادثة الواتساب لنسيت كلمة المرور
+        function openForgotPasswordWhatsApp(event) {
+            if (event) event.preventDefault();
+            const phoneInput = document.getElementById('authPhone').value.trim();
+            const shopPhone = "201002669119";
+            
+            let msgText = "مرحباً ميرو ماركت، نسيت كلمة المرور الخاصة بحسابي وأرغب في استرجاعها.";
+            if (phoneInput) {
+                msgText += `\nرقم الهاتف: ${phoneInput}`;
+            }
+            
+            const waUrl = `https://wa.me/${shopPhone}?text=${encodeURIComponent(msgText)}`;
+            window.open(waUrl, '_blank');
         }
 
         async function handleAuthSubmit() {
             const phone = document.getElementById('authPhone').value.trim();
             const password = document.getElementById('authPass').value.trim();
             const name = document.getElementById('authName').value.trim();
+            const email = document.getElementById('authEmail').value.trim();
             const address = document.getElementById('authAddress').value.trim();
 
             if (!phone || !password) {
@@ -1088,7 +1175,6 @@
                 return;
             }
 
-            // جلب أحدث بيانات العملاء من Google Sheets أولاً للتحقق بدقة
             await fetchDataFromSheets();
 
             if (authMode === 'signin') {
@@ -1115,30 +1201,57 @@
                 updateCartUI();
                 showToast(state.lang === 'ar' ? "تم تسجيل الدخول بنجاح!" : "Signed in successfully!", "fa-circle-check");
                 fetchDataFromSheets();
-            } else {
-                // التحقق مما إذا كان رقم الهاتف مسجلاً مسبقاً ولديه كلمة مرور
-                const existingCustomer = state.customers.find(c => String(c.phone).trim() === phone);
-                
-                if (existingCustomer && existingCustomer.password && String(existingCustomer.password).trim() !== "") {
-                    showToast(state.lang === 'ar' ? "رقم الهاتف مسجل مسبقاً وله حساب وكلمة مرور! يرجى تسجيل الدخول مباشرة." : "Phone already registered!", "fa-triangle-exclamation");
-                    return; // إيقاف العملية تماماً وعدم إرسال أي بيانات لجوجل شيت
-                }
 
-                if (!name || !address) {
-                    showToast(state.lang === 'ar' ? "يرجى إدخال الاسم والعنوان لإتمام التسجيل!" : "Please enter name and address!", "fa-pen");
+            } else {
+                // شروط التسجيل الجديدة
+                const phoneRegex = /^0\d{10,}$/;
+                if (!phoneRegex.test(phone)) {
+                    showToast(state.lang === 'ar' ? "رقم الهاتف يجب أن يبدأ بـ 0 ولا يقل عن 11 رقم!" : "Phone must start with 0 and be at least 11 digits!", "fa-phone");
                     return;
                 }
 
-                tempRegistrationData = { phone, name, address, password };
+                if (password.length < 4) {
+                    showToast(state.lang === 'ar' ? "كلمة المرور يجب ألا تقل عن 4 خانات!" : "Password must be at least 4 characters!", "fa-key");
+                    return;
+                }
+
+                const nameParts = name.trim().split(/\s+/);
+                if (!name || nameParts.length < 2) {
+                    showToast(state.lang === 'ar' ? "يرجى كتابة الاسم ثنائي على الأقل (اسمين بينهما مسافة)!" : "Name must consist of at least two words!", "fa-user-pen");
+                    return;
+                }
+
+                if (!email.includes('@') || !email.toLowerCase().includes('.com')) {
+                    showToast(state.lang === 'ar' ? "يرجى إدخال بريد إلكتروني صحيح يحتوي على @ و .com!" : "Email must contain @ and .com!", "fa-envelope");
+                    return;
+                }
+
+                if (!address) {
+                    showToast(state.lang === 'ar' ? "يرجى إدخال العنوان التفصيلي!" : "Please enter detailed address!", "fa-location-dot");
+                    return;
+                }
+
+                const existingCustomer = state.customers.find(c => String(c.phone).trim() === phone);
+                if (existingCustomer && existingCustomer.password && String(existingCustomer.password).trim() !== "") {
+                    showToast(state.lang === 'ar' ? "رقم الهاتف مسجل مسبقاً وله حساب! يرجى تسجيل الدخول مباشرة." : "Phone already registered!", "fa-triangle-exclamation");
+                    return;
+                }
+
+                // 🟢 تذكرني عند Signup: حفظ بيانات المستخدم تلقائياً في LocalStorage
+                state.user = { phone: phone, name: name, address: address };
+                localStorage.setItem('miro_user', JSON.stringify(state.user));
+                updateProfileUI();
+
+                tempRegistrationData = { phone, name, email, address, password };
 
                 try {
-                    // إرسال البيانات لجوجل شيت فقط إذا لم يكن مسجلاً من قبل
                     await fetch(state.settings.scriptUrl, {
                         method: 'POST',
                         body: JSON.stringify({
                             action: 'register',
                             phone: phone,
                             name: name,
+                            email: email,
                             address: address,
                             password: password,
                             status: 'قيد الانتظار'
@@ -1149,7 +1262,7 @@
                 }
 
                 const shopPhone = "201002669119";
-                const textMsg = encodeURIComponent(`مرحباً ميرو ماركت، طلب تفعيل حساب جديد:\nالاسم: ${name}\nرقم الجوال: ${phone}`);
+                const textMsg = encodeURIComponent(`مرحباً ميرو ماركت، طلب تفعيل حساب جديد:\nالاسم: ${name}\nالبريد الإلكتروني: ${email}\nرقم الجوال: ${phone}`);
                 const waUrl = `https://wa.me/${shopPhone}?text=${textMsg}`;
                 
                 document.getElementById('btnSendWhatsappMsg').href = waUrl;
@@ -1169,18 +1282,12 @@
 
             await fetchDataFromSheets();
 
-            if (tempRegistrationData) {
-                const cust = state.customers.find(c => String(c.phone).trim() === String(tempRegistrationData.phone).trim());
+            if (tempRegistrationData || state.user) {
+                const checkPhone = state.user ? state.user.phone : tempRegistrationData.phone;
+                const cust = state.customers.find(c => String(c.phone).trim() === String(checkPhone).trim());
                 if (cust) {
                     const statusStr = cust.status ? String(cust.status).trim() : 'قيد الانتظار';
                     if (statusStr === 'مفعل' || statusStr === 'Approved') {
-                        state.user = { 
-                            phone: tempRegistrationData.phone, 
-                            name: tempRegistrationData.name, 
-                            address: tempRegistrationData.address 
-                        };
-                        localStorage.setItem('miro_user', JSON.stringify(state.user));
-                        updateProfileUI();
                         closeLoginModal();
                         updateCartUI();
                         showToast(state.lang === 'ar' ? "تهانينا! تم تفعيل حسابك بنجاح." : "Account approved!", "fa-party-horn");
