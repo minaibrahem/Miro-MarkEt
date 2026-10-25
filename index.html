@@ -18,6 +18,21 @@
     <!-- Google Fonts Cairo -->
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800&display=swap" rel="stylesheet">
     
+    <!-- 🟢 OneSignal Web SDK -->
+    <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
+    <script>
+      window.OneSignalDeferred = window.OneSignalDeferred || [];
+      OneSignalDeferred.push(async function(OneSignal) {
+        await OneSignal.init({
+          appId: "8075561a-0c1e-4c91-923a-a0afab42831c",
+          allowLocalhostAsSecureOrigin: true
+        });
+        
+        // إظهار نافذة طلب الإشعارات تلقائياً للزوار بشكل صحيح بداخل دالة التهيئة
+        await OneSignal.Slidedown.promptPush();
+      });
+    </script>
+
     <script>
         tailwind.config = {
             theme: {
@@ -604,7 +619,6 @@
                 activeBtn.classList.remove('text-gray-500');
             }
 
-            // 🟢 تحديث البيانات فوراً مع فتح أي تاب
             fetchDataFromSheets();
         }
 
@@ -624,7 +638,6 @@
                     if (data.customers && Array.isArray(data.customers)) {
                         state.customers = data.customers;
 
-                        // 🔴 الفحص التلقائي لحالة الحساب وتأكيد التفعيل/تسجيل الخروج
                         if (state.user && state.user.phone) {
                             const loggedPhone = String(state.user.phone).trim();
                             const currentCustData = state.customers.find(c => String(c.phone).trim() === loggedPhone);
@@ -634,14 +647,12 @@
                                 const isApproved = statusStr === 'مفعل' || statusStr === 'Approved';
 
                                 if (!isApproved) {
-                                    // 🛑 إذا تغيرت حالة الحساب إلى قيد الانتظار/قيد الإجراء -> خروج فوراً
                                     handleSignOut();
                                     showToast(
                                         state.lang === 'ar' ? "تم تسجيل الخروج: حسابك قيد المراجعة أو تم إيقافه من الإدارة" : "Signed out: Account pending or deactivated", 
                                         "fa-triangle-exclamation"
                                     );
                                 } else {
-                                    // تحديث بيانات اسم وعنوان العميل إذا تعدلت من الشيت
                                     state.user.name = currentCustData.name || state.user.name;
                                     state.user.address = currentCustData.address || state.user.address;
                                     localStorage.setItem('miro_user', JSON.stringify(state.user));
@@ -1148,7 +1159,6 @@
             }
         }
 
-        // 🟢 دالة فتح محادثة الواتساب لنسيت كلمة المرور
         function openForgotPasswordWhatsApp(event) {
             if (event) event.preventDefault();
             const phoneInput = document.getElementById('authPhone').value.trim();
@@ -1203,7 +1213,6 @@
                 fetchDataFromSheets();
 
             } else {
-                // شروط التسجيل الجديدة
                 const phoneRegex = /^0\d{10,}$/;
                 if (!phoneRegex.test(phone)) {
                     showToast(state.lang === 'ar' ? "رقم الهاتف يجب أن يبدأ بـ 0 ولا يقل عن 11 رقم!" : "Phone must start with 0 and be at least 11 digits!", "fa-phone");
@@ -1237,7 +1246,6 @@
                     return;
                 }
 
-                // 🟢 تذكرني عند Signup: حفظ بيانات المستخدم تلقائياً في LocalStorage
                 state.user = { phone: phone, name: name, address: address };
                 localStorage.setItem('miro_user', JSON.stringify(state.user));
                 updateProfileUI();
