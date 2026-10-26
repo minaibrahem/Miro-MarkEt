@@ -30,6 +30,17 @@
         
         // إظهار نافذة طلب الإشعارات تلقائياً للزوار بشكل صحيح بداخل دالة التهيئة
         await OneSignal.Slidedown.promptPush();
+
+        // الاستماع للإشعارات الواردة لإضافتها مباشرة إلى مركز الإشعارات داخل التطبيق
+        OneSignal.Notifications.addEventListener('click', event => {
+            const notificationData = event.notification;
+            addNotificationToCenter(notificationData.title || "إشعار جديد", notificationData.body || "لديك رسالة جديدة من ميرو ماركت");
+        });
+
+        OneSignal.Notifications.addEventListener('foregroundWillDisplay', event => {
+            const notificationData = event.notification;
+            addNotificationToCenter(notificationData.title || "إشعار جديد", notificationData.body || "لديك رسالة جديدة من ميرو ماركت");
+        });
       });
     </script>
 
@@ -97,6 +108,28 @@
         </div>
     </div>
 
+    <!-- 🟢 NOTIFICATION CENTER MODAL -->
+    <div id="notificationModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-2xl w-full max-w-md p-5 space-y-4 shadow-2xl relative max-h-[80vh] flex flex-col">
+            <div class="flex items-center justify-between border-b pb-3">
+                <h3 class="font-bold text-sm text-gray-800 flex items-center gap-2">
+                    <i class="fa-solid fa-bell text-amazon-orange"></i> مركز الإشعارات
+                </h3>
+                <div class="flex items-center gap-2">
+                    <button onclick="markAllNotificationsAsRead()" class="text-[11px] text-emerald-700 font-bold hover:underline">تحديد الكل مقروء</button>
+                    <button onclick="clearAllNotifications()" class="text-[11px] text-red-600 font-bold hover:underline">حذف الكل</button>
+                    <button onclick="closeNotificationModal()" class="text-gray-400 hover:text-gray-600 mr-2">
+                        <i class="fa-solid fa-xmark text-lg"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div id="notificationsListContainer" class="space-y-2 overflow-y-auto flex-1 pr-1">
+                <!-- سيتم حقن الإشعارات هنا برمجياً -->
+            </div>
+        </div>
+    </div>
+
     <!-- شاشة التحميل (Splash Screen) -->
     <div id="loading-screen" style="
         position: fixed;
@@ -139,7 +172,17 @@
                     <span class="bg-amazon-orange text-xs text-gray-900 font-bold px-1.5 py-0.5 rounded">MarkEt</span>
                 </div>
 
-                <div class="flex-1 relative">
+                <!-- 🟢 زر مركز الإشعارات بجانب خانة البحث -->
+                <div class="flex items-center gap-2">
+                    <button onclick="openNotificationModal()" class="relative bg-amazon-lightNavy hover:bg-gray-700 text-white p-2 rounded-xl border border-gray-700 transition">
+                        <i class="fa-solid fa-bell text-sm text-amazon-yellow"></i>
+                        <span id="notificationBadge" class="absolute -top-1 -right-1 bg-red-600 text-white text-[9px] font-black w-4 h-4 rounded-full flex items-center justify-center border border-white hidden">0</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="px-4 pb-2">
+                <div class="relative">
                     <input type="text" id="searchInput" oninput="filterProducts()" placeholder="ابحث عن خضار، فواكه..." 
                            class="w-full text-xs text-gray-900 px-3 py-2 pr-8 rounded-lg focus:outline-none focus:ring-2 focus:ring-amazon-orange bg-white shadow-inner">
                     <i class="fa-solid fa-magnifying-glass absolute left-2.5 top-2.5 text-gray-400 text-xs"></i>
@@ -352,7 +395,6 @@
                     <input type="tel" id="authPhone" placeholder="رقم الجوال" class="w-full p-2.5 border rounded-xl bg-gray-50">
                     <input type="password" id="authPass" placeholder="كلمة المرور" class="w-full p-2.5 border rounded-xl bg-gray-50">
                     
-                    <!-- 🟢 زر نسيت كلمة المرور الخاص بتسجيل الدخول -->
                     <div id="forgotPassContainer" class="text-left px-1">
                         <a href="#" onclick="openForgotPasswordWhatsApp(event)" class="text-[11px] text-emerald-700 font-bold hover:underline inline-flex items-center gap-1">
                             <i class="fa-solid fa-key text-amazon-orange text-[10px]"></i> نسيت كلمة المرور؟
@@ -417,6 +459,98 @@
         window.alert = function(message) {
             showToast(message, 'fa-bell');
         };
+
+        // 🟢 دوال مركز الإشعارات (Notification Center Logic)
+        let appNotifications = JSON.parse(localStorage.getItem('miro_notifications')) || [
+            { id: 1, title: "مرحباً بك في Miro MarkEt", body: "استمتع بأفضل الخضروات والفواكه الطازجة بأفضل الأسعار.", date: "اليوم", read: false }
+        ];
+
+        function openNotificationModal() {
+            const modal = document.getElementById('notificationModal');
+            if (modal) modal.classList.remove('hidden');
+            renderNotificationsUI();
+        }
+
+        function closeNotificationModal() {
+            const modal = document.getElementById('notificationModal');
+            if (modal) modal.classList.add('hidden');
+        }
+
+        function addNotificationToCenter(title, body) {
+            const newNotif = {
+                id: Date.now(),
+                title: title,
+                body: body,
+                date: new Date().toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' }),
+                read: false
+            };
+            appNotifications.unshift(newNotif);
+            saveNotifications();
+            renderNotificationsUI();
+        }
+
+        function saveNotifications() {
+            localStorage.setItem('miro_notifications', JSON.stringify(appNotifications));
+        }
+
+        function renderNotificationsUI() {
+            const container = document.getElementById('notificationsListContainer');
+            const badge = document.getElementById('notificationBadge');
+            if (!container) return;
+
+            const unreadCount = appNotifications.filter(n => !n.read).length;
+            if (badge) {
+                if (unreadCount > 0) {
+                    badge.textContent = unreadCount;
+                    badge.classList.remove('hidden');
+                } else {
+                    badge.classList.add('hidden');
+                }
+            }
+
+            if (appNotifications.length === 0) {
+                container.innerHTML = `<p class="text-gray-400 text-center py-8 text-xs">لا توجد إشعارات حالياً</p>`;
+                return;
+            }
+
+            container.innerHTML = appNotifications.map(n => `
+                <div class="p-3 rounded-xl border ${n.read ? 'bg-white border-gray-100 text-gray-600' : 'bg-amber-50/60 border-amber-200 text-gray-900 font-medium'} flex items-start justify-between gap-2 transition">
+                    <div class="space-y-1">
+                        <div class="flex items-center gap-1.5">
+                            <i class="fa-solid fa-circle-dot text-[8px] ${n.read ? 'text-gray-300' : 'text-amazon-orange'}"></i>
+                            <h4 class="font-bold text-xs">${n.title}</h4>
+                        </div>
+                        <p class="text-xs text-gray-600 leading-relaxed">${n.body}</p>
+                        <span class="text-[10px] text-gray-400 block">${n.date}</span>
+                    </div>
+                    <div class="flex items-center gap-1">
+                        ${!n.read ? `<button onclick="markAsRead(${n.id})" class="text-[10px] text-emerald-700 hover:underline px-1">قراءة</button>` : ''}
+                        <button onclick="deleteNotification(${n.id})" class="text-gray-400 hover:text-red-600 p-1"><i class="fa-solid fa-trash-can text-xs"></i></button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function markAsRead(id) {
+            const notif = appNotifications.find(n => n.id === id);
+            if (notif) {
+                notif.read = true;
+                saveNotifications();
+                renderNotificationsUI();
+            }
+        }
+
+        function markAllNotificationsAsRead() {
+            appNotifications.forEach(n => n.read = true);
+            saveNotifications();
+            renderNotificationsUI();
+        }
+
+        function clearAllNotifications() {
+            appNotifications = [];
+            saveNotifications();
+            renderNotificationsUI();
+        }
 
         let pendingConfirmCallback = null;
         function openCustomConfirm(title, message, onConfirm) {
@@ -549,6 +683,7 @@
             updateCartUI();
             updateProfileUI();
             updateOrdersHistoryUI();
+            renderNotificationsUI();
 
             fetchDataFromSheets();
         });
