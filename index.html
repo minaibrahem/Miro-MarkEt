@@ -26,8 +26,8 @@
         await OneSignal.init({
           appId: "8075561a-0c1e-4c91-923a-a0afab42831c",
           allowLocalhostAsSecureOrigin: true,
-          serviceWorkerParam: { scope: "/Miro-MarkEt/" },
-          serviceWorkerPath: "OneSignalSDKWorker.js"
+          serviceWorkerPath: "OneSignalSDKWorker.js",
+          serviceWorkerParam: { scope: "/Miro-MarkEt/" }
         });
         
         // إظهار نافذة طلب الإشعارات تلقائياً للزوار بشكل صحيح بداخل دالة التهيئة
